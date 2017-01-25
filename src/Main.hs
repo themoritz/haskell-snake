@@ -89,8 +89,22 @@ stepFrame
 stepFrame genRandomPoint windowDim = do
   running <- use gameRunning
   when running $ do
-    -- TODO: implement!
-    pure ()
+    oldHead <- use (gameSnake . snakeHead)
+    direction <- use gameDirection
+    snake <- use gameSnake
+    food <- use gameFood
+    let newHead = movePoint oldHead direction windowDim
+    if elem newHead snake
+      then put (newGame windowDim food)
+      else do
+        gameSnake %= snakePushHead newHead
+        toGrow <- use gameToGrow
+        when (newHead == food) $ do
+          gameFood <~ genRandomPoint
+          gameToGrow += 10
+        if (toGrow == 0)
+          then gameSnake %= snakePopTail
+          else gameToGrow -= 1
 
 --------------------------------------------------------------------------------
 -- Renderer
